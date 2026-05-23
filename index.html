@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1a3a5c">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="運行記録">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <title>車両運行記録</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy: #1a3a5c;
+      --navy-dark: #0f2237;
+      --blue: #2563eb;
+      --blue-light: #dbeafe;
+      --green: #059669;
+      --green-light: #d1fae5;
+      --yellow: #fffbeb;
+      --yellow-border: #fde68a;
+      --gray-50: #f8fafc;
+      --gray-100: #f1f5f9;
+      --gray-200: #e2e8f0;
+      --gray-400: #94a3b8;
+      --gray-600: #475569;
+      --gray-800: #1e293b;
+      --red: #dc2626;
+      --white: #ffffff;
+      --radius: 12px;
+      --shadow: 0 2px 12px rgba(0,0,0,0.10);
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Noto Sans JP', sans-serif;
+      background: var(--gray-100);
+      color: var(--gray-800);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ===== HEADER ===== */
+    #app-header {
+      background: var(--navy);
+      color: white;
+      padding: env(safe-area-inset-top, 0) 0 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+    }
+    .header-inner {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px 10px;
+    }
+    .header-icon { font-size: 22px; }
+    .header-title { font-size: 15px; font-weight: 700; letter-spacing: 0.5px; }
+    .header-sub { font-size: 10px; opacity: 0.6; margin-top: 1px; }
+
+    /* タブ */
+    .tabs {
+      display: flex;
+      padding: 0 12px 10px;
+      gap: 6px;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 8px 0;
+      border: none;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .2s;
+      background: rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.8);
+    }
+    .tab-btn.active {
+      background: white;
+      color: var(--navy);
+    }
+
+    /* ===== MAIN ===== */
+    #main {
+      padding: 14px 14px calc(env(safe-area-inset-bottom, 0px) + 20px);
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    /* ===== TOAST ===== */
+    #toast {
+      position: fixed;
+      top: 80px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-10px);
+      background: var(--green);
+      color: white;
+      padding: 10px 24px;
+      border-radius: 24px;
+      font-weight: 700;
+      font-size: 14px;
+      opacity: 0;
+      pointer-events: none;
+      transition: all .3s;
+      z-index: 999;
+      white-space: nowrap;
+    }
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ===== CARD ===== */
+    .card {
+      background: white;
+      border-radius: var(--radius);
+      padding: 14px 15px;
+      margin-bottom: 11px;
+      box-shadow: var(--shadow);
+    }
+    .card-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--navy);
+      letter-spacing: 0.8px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* ===== FIELD ===== */
+    .field { margin-bottom: 10px; }
+    .field:last-child { margin-bottom: 0; }
+    .field-label {
+      display: block;
+      font-size: 11px;
+      color: var(--gray-600);
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    /* ===== INPUT ===== */
+    input[type="date"],
+    input[type="time"],
+    input[type="number"],
+    input[type="text"],
+    textarea {
+      width: 100%;
+      padding: 9px 11px;
+      border: 1.5px solid var(--gray-200);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--gray-800);
+      background: var(--gray-50);
+      outline: none;
+      transition: border-color .2s;
+      -webkit-appearance: none;
+    }
+    input:focus, textarea:focus {
+      border-color: var(--blue);
+      background: white;
+    }
+    textarea { height: 64px; resize: none; }
+
+    /* 時刻入力 + 今ボタン */
+    .time-wrap {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .time-wrap input { flex: 1; }
+    .now-btn {
+      padding: 0 11px;
+      height: 38px;
+      background: var(--navy);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* 目的ボタン */
+    .purpose-btns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .purpose-btn {
+      padding: 6px 13px;
+      border-radius: 20px;
+      border: 1.5px solid var(--gray-200);
+      background: white;
+      color: var(--gray-600);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .purpose-btn.active {
+      background: var(--navy);
+      color: white;
+      border-color: var(--navy);
+    }
+
+    /* 走行距離バナー */
+    #dist-banner {
+      background: var(--blue-light);
+      border: 1.5px solid #bfdbfe;
+      border-radius: 8px;
+      padding: 9px 13px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    #dist-banner.show { display: flex; }
+    #dist-banner span { font-weight: 700; color: var(--blue); font-size: 15px; }
+
+    /* 給油チェック */
+    .check-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--gray-800);
+      margin-bottom: 10px;
+    }
+    .check-label input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--navy);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    /* ===== 保存ボタン ===== */
+    #save-btn {
+      width: 100%;
+      padding: 15px;
+      background: var(--navy);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 14px rgba(26,58,92,0.35);
+      margin-top: 4px;
+      transition: transform .1s, box-shadow .1s;
+    }
+    #save-btn:active { transform: scale(0.98); box-shadow: 0 2px 6px rgba(26,58,92,0.25); }
+
+    /* ===== 記録一覧 ===== */
+    #csv-btn {
+      width: 100%;
+      padding: 12px;
+      background: var(--green);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(5,150,105,0.3);
+    }
+    #clear-btn {
+      width: 100%;
+      padding: 10px;
+      background: white;
+      color: var(--red);
+      border: 1.5px solid #fecaca;
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-bottom: 12px;
+    }
+
+    .record-card {
+      background: white;
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      box-shadow: var(--shadow);
+    }
+    .record-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+    .record-date { font-weight: 700; color: var(--navy); font-size: 13px; }
+    .record-dist {
+      background: var(--blue-light);
+      color: var(--blue);
+      border-radius: 20px;
+      padding: 2px 10px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .record-dest { font-size: 12px; color: var(--gray-800); }
+    .record-sub { font-size: 11px; color: var(--gray-400); margin-top: 3px; }
+
+    .empty-msg {
+      text-align: center;
+      color: var(--gray-400);
+      padding: 60px 0;
+      font-size: 14px;
+    }
+
+    /* ===== HIDDEN ===== */
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+<div id="app-header">
+  <div class="header-inner">
+    <span class="header-icon">🚗</span>
+    <div>
+      <div class="header-title">車両運行記録</div>
+      <div class="header-sub">坂本光央 ／ 和歌山500て4224</div>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('input')">📝 入力</button>
+    <button class="tab-btn" onclick="showTab('history')" id="history-tab-btn">📋 記録一覧</button>
+  </div>
+</div>
+
+<div id="toast">✅ 記録しました！</div>
+
+<!-- ===== 入力タブ ===== -->
+<div id="tab-input">
+<div id="main">
+
+  <!-- 基本情報 -->
+  <div class="card">
+    <div class="card-title">📅 基本情報</div>
+    <div class="field">
+      <label class="field-label">日付</label>
+      <input type="date" id="f-date">
+    </div>
+  </div>
+
+  <!-- 出発 -->
+  <div class="card">
+    <div class="card-title">🟢 出発</div>
+    <div class="field-row">
+      <div class="field">
+        <label class="field-label">出発時刻</label>
+        <div class="time-wrap">
+          <input type="time" id="f-dep-time">
+          <button class="now-btn" onclick="setNow('f-dep-time')">今</button>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">出発メーター (km)</label>
+        <input type="number" id="f-dep-meter" placeholder="例: 36602" inputmode="numeric">
+      </div>
+    </div>
+    <div class="field">
+      <label class="field-label">行き先</label>
+      <input type="text" id="f-dest" placeholder="例: ○○社、△△倉庫">
+    </div>
+    <div class="field">
+      <label class="field-label">目的</label>
+      <div class="purpose-btns" id="purpose-btns">
+        <button class="purpose-btn" onclick="setPurpose(this, '営業訪問')">営業訪問</button>
+        <button class="purpose-btn" onclick="setPurpose(this, '資材調達')">資材調達</button>
+        <button class="purpose-btn" onclick="setPurpose(this, '配送')">配送</button>
+        <button class="purpose-btn" onclick="setPurpose(this, '出張')">出張</button>
+        <button class="purpose-btn" onclick="setPurpose(this, 'その他')">その他</button>
+      </div>
+      <input type="text" id="f-purpose-other" placeholder="目的を入力" style="margin-top:8px;display:none;">
+    </div>
+    <!-- アルコール出発 -->
+    <div class="field">
+      <label class="field-label">アルコール数値（出発）</label>
+      <input type="number" id="f-alc-dep" placeholder="0.00" step="0.01" inputmode="decimal">
+    </div>
+  </div>
+
+  <!-- 帰着 -->
+  <div class="card">
+    <div class="card-title">🔴 帰着</div>
+    <div class="field-row">
+      <div class="field">
+        <label class="field-label">帰着時刻</label>
+        <div class="time-wrap">
+          <input type="time" id="f-arr-time">
+          <button class="now-btn" onclick="setNow('f-arr-time')">今</button>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">帰着メーター (km)</label>
+        <input type="number" id="f-arr-meter" placeholder="例: 36672" inputmode="numeric">
+      </div>
+    </div>
+    <!-- 走行距離バナー -->
+    <div id="dist-banner">
+      <span>📏</span>
+      <span id="dist-val"></span>
+    </div>
+    <!-- アルコール帰着 -->
+    <div class="field" style="margin-top:10px;">
+      <label class="field-label">アルコール数値（帰着）</label>
+      <input type="number" id="f-alc-arr" placeholder="0.00" step="0.01" inputmode="decimal">
+    </div>
+  </div>
+
+  <!-- 異常・給油・備考 -->
+  <div class="card">
+    <div class="card-title">📋 その他</div>
+    <div class="field">
+      <label class="field-label">異常</label>
+      <div class="purpose-btns" style="margin-bottom:8px;">
+        <button class="purpose-btn active" id="abnorm-none" onclick="setAbnorm('無')">無</button>
+        <button class="purpose-btn" id="abnorm-yes" onclick="setAbnorm('有')">有（内容を入力）</button>
+      </div>
+      <input type="text" id="f-abnorm-text" placeholder="異常の内容" style="display:none;">
+    </div>
+    <div class="field">
+      <label class="check-label">
+        <input type="checkbox" id="f-fuel-chk" onchange="toggleFuel()">
+        今日給油した
+      </label>
+      <div id="fuel-fields" class="field-row hidden">
+        <div class="field">
+          <label class="field-label">給油量 (L)</label>
+          <input type="number" id="f-fuel-l" placeholder="例: 32.2" step="0.1" inputmode="decimal">
+        </div>
+        <div class="field">
+          <label class="field-label">給油代 (円)</label>
+          <input type="number" id="f-fuel-yen" placeholder="例: 5800" inputmode="numeric">
+        </div>
+      </div>
+    </div>
+    <div class="field">
+      <label class="field-label">備考</label>
+      <textarea id="f-remarks" placeholder="特記事項があれば"></textarea>
+    </div>
+  </div>
+
+  <button id="save-btn" onclick="saveRecord()">✅ 記録を保存する</button>
+
+</div>
+</div>
+
+<!-- ===== 記録一覧タブ ===== -->
+<div id="tab-history" class="hidden">
+<div id="main">
+  <button id="csv-btn" onclick="downloadCSV()">⬇️ CSVダウンロード（スプレッドシートに貼り付け可）</button>
+  <button id="clear-btn" onclick="clearAll()">🗑️ すべての記録を削除</button>
+  <div id="record-list"></div>
+</div>
+</div>
+
+<script>
+// ===== 状態 =====
+let records = JSON.parse(localStorage.getItem('vehicleLog') || '[]');
+let purpose = '';
+let abnorm  = '無';
+
+// ===== 初期化 =====
+document.addEventListener('DOMContentLoaded', () => {
+  const today = new Date();
+  document.getElementById('f-date').value = today.toISOString().split('T')[0];
+  document.getElementById('f-alc-dep').value = '0.00';
+  document.getElementById('f-alc-arr').value = '0.00';
+  updateHistoryTab();
+
+  // メーター変化で走行距離を更新
+  document.getElementById('f-dep-meter').addEventListener('input', updateDist);
+  document.getElementById('f-arr-meter').addEventListener('input', updateDist);
+});
+
+// ===== タブ切替 =====
+function showTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-input').classList.toggle('hidden', tab !== 'input');
+  document.getElementById('tab-history').classList.toggle('hidden', tab !== 'history');
+  event.target.classList.add('active');
+  if (tab === 'history') updateHistoryTab();
+}
+
+// ===== 今ボタン =====
+function setNow(id) {
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2,'0');
+  const mm = String(now.getMinutes()).padStart(2,'0');
+  document.getElementById(id).value = `${hh}:${mm}`;
+  updateDist();
+}
+
+// ===== 走行距離 =====
+function updateDist() {
+  const dep = parseFloat(document.getElementById('f-dep-meter').value);
+  const arr = parseFloat(document.getElementById('f-arr-meter').value);
+  const banner = document.getElementById('dist-banner');
+  if (!isNaN(dep) && !isNaN(arr) && arr >= dep) {
+    document.getElementById('dist-val').textContent = `走行距離： ${arr - dep} km`;
+    banner.classList.add('show');
+  } else {
+    banner.classList.remove('show');
+  }
+}
+
+// ===== 目的 =====
+function setPurpose(btn, val) {
+  document.querySelectorAll('.purpose-btn').forEach(b => {
+    if (b.closest('#purpose-btns')) b.classList.remove('active');
+  });
+  btn.classList.add('active');
+  purpose = val;
+  const other = document.getElementById('f-purpose-other');
+  other.style.display = val === 'その他' ? 'block' : 'none';
+}
+
+// ===== 異常 =====
+function setAbnorm(val) {
+  abnorm = val;
+  document.getElementById('abnorm-none').classList.toggle('active', val === '無');
+  document.getElementById('abnorm-yes').classList.toggle('active', val === '有');
+  document.getElementById('f-abnorm-text').style.display = val === '有' ? 'block' : 'none';
+}
+
+// ===== 給油 =====
+function toggleFuel() {
+  const chk = document.getElementById('f-fuel-chk').checked;
+  document.getElementById('fuel-fields').classList.toggle('hidden', !chk);
+}
+
+// ===== 保存 =====
+function saveRecord() {
+  const date     = document.getElementById('f-date').value;
+  const depTime  = document.getElementById('f-dep-time').value;
+  const depMeter = document.getElementById('f-dep-meter').value;
+  const dest     = document.getElementById('f-dest').value;
+
+  if (!date || !depTime || !depMeter || !dest) {
+    alert('日付・出発時刻・出発メーター・行き先は必須です');
+    return;
+  }
+
+  const arrMeter = document.getElementById('f-arr-meter').value;
+  const dist = (depMeter && arrMeter && parseFloat(arrMeter) >= parseFloat(depMeter))
+    ? parseFloat(arrMeter) - parseFloat(depMeter) : '';
+
+  const purposeVal = purpose === 'その他'
+    ? document.getElementById('f-purpose-other').value
+    : purpose;
+
+  const fuelChk = document.getElementById('f-fuel-chk').checked;
+  const abnormText = abnorm === '有' ? document.getElementById('f-abnorm-text').value : '';
+
+  const rec = {
+    date,
+    depTime,
+    arrTime:  document.getElementById('f-arr-time').value,
+    depMeter: parseFloat(depMeter),
+    arrMeter: arrMeter ? parseFloat(arrMeter) : '',
+    dist,
+    dest,
+    purpose:  purposeVal,
+    abnorm:   abnorm === '有' ? (abnormText || '有') : '無',
+    fuel:     fuelChk ? (document.getElementById('f-fuel-l').value || '') : '',
+    fuelYen:  fuelChk ? (document.getElementById('f-fuel-yen').value || '') : '',
+    alcDep:   document.getElementById('f-alc-dep').value || '0.00',
+    alcArr:   document.getElementById('f-alc-arr').value || '0.00',
+    remarks:  document.getElementById('f-remarks').value,
+  };
+
+  records.unshift(rec);
+  localStorage.setItem('vehicleLog', JSON.stringify(records));
+
+  // トースト
+  const toast = document.getElementById('toast');
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2000);
+
+  // フォームリセット（日付・メーターは引継ぎ）
+  const nextMeter = arrMeter;
+  document.getElementById('f-dep-time').value  = '';
+  document.getElementById('f-arr-time').value  = '';
+  document.getElementById('f-dep-meter').value = nextMeter;
+  document.getElementById('f-arr-meter').value = '';
+  document.getElementById('f-dest').value      = '';
+  document.getElementById('f-purpose-other').value = '';
+  document.getElementById('f-abnorm-text').value   = '';
+  document.getElementById('f-fuel-chk').checked    = false;
+  document.getElementById('f-fuel-l').value    = '';
+  document.getElementById('f-fuel-yen').value  = '';
+  document.getElementById('f-alc-dep').value   = '0.00';
+  document.getElementById('f-alc-arr').value   = '0.00';
+  document.getElementById('f-remarks').value   = '';
+  document.querySelectorAll('.purpose-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('fuel-fields').classList.add('hidden');
+  document.getElementById('dist-banner').classList.remove('show');
+  document.getElementById('f-abnorm-text').style.display = 'none';
+  document.getElementById('f-purpose-other').style.display = 'none';
+  setAbnorm('無');
+  purpose = '';
+}
+
+// ===== 記録一覧 =====
+function updateHistoryTab() {
+  const btn = document.getElementById('history-tab-btn');
+  btn.textContent = `📋 記録一覧 (${records.length})`;
+
+  const list = document.getElementById('record-list');
+  if (records.length === 0) {
+    list.innerHTML = '<div class="empty-msg">まだ記録がありません</div>';
+    return;
+  }
+  list.innerHTML = records.map((r, i) => `
+    <div class="record-card">
+      <div class="record-top">
+        <span class="record-date">${r.date}</span>
+        ${r.dist !== '' ? `<span class="record-dist">${r.dist} km</span>` : ''}
+      </div>
+      <div class="record-dest">🏁 ${r.dest}${r.purpose ? ' ／ ' + r.purpose : ''}</div>
+      <div class="record-sub">
+        ${r.depTime ? '出発 ' + r.depTime : ''}${r.arrTime ? ' → 帰着 ' + r.arrTime : ''}
+        ${r.fuel ? ' ⛽ ' + r.fuel + 'L' : ''}
+        ${r.abnorm !== '無' ? ' ⚠️ ' + r.abnorm : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+// ===== CSVダウンロード =====
+function downloadCSV() {
+  if (records.length === 0) { alert('記録がありません'); return; }
+  const header = '日付,出発時刻,帰着時刻,出発メーター(km),帰着メーター(km),走行距離(km),行き先,目的,異常,燃料補給(L),給油代(円),アルコール出発,アルコール帰着,備考';
+  const rows = records.map(r =>
+    [r.date, r.depTime, r.arrTime, r.depMeter, r.arrMeter, r.dist,
+     r.dest, r.purpose, r.abnorm, r.fuel, r.fuelYen,
+     r.alcDep, r.alcArr, r.remarks].join(',')
+  );
+  const csv = '\uFEFF' + [header, ...rows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = `運行記録_${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+}
+
+// ===== 全削除 =====
+function clearAll() {
+  if (!confirm('すべての記録を削除しますか？\n（この操作は元に戻せません）')) return;
+  records = [];
+  localStorage.setItem('vehicleLog', '[]');
+  updateHistoryTab();
+}
+
+// ===== Service Worker 登録 =====
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(err => console.log('SW:', err));
+}
+</script>
+</body>
+</html>
