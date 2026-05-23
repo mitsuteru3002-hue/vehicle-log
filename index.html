@@ -692,7 +692,7 @@ function clearAll() {
 }
 
 // ===== Google Apps Script URL =====
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxpnvskfgyQuSQTN-9QNYTl9-i_b60wFMn4wFuxtGmcrPFWNOjvjbPKYfWSUKVB55nL/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbz9gmoM9QILszKXmGcRWhDvGFehfmubUo3PKTEBt2WOF0agdYHaWmmAB34ff4Ud2etx/exec';
 
 // ===== スプレッドシートに送信 =====
 async function sendToSheet(rec) {
@@ -710,13 +710,12 @@ async function sendToSheet(rec) {
   }
 }
 
-// ===== Google Apps Script URL =====
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxpnvskfgyQuSQTN-9QNYTl9-i_b60wFMn4wFuxtGmcrPFWNOjvjbPKYfWSUKVB55nL/exec';
+// ===== Google Apps Script =====
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbz9gmoM9QILszKXmGcRWhDvGFehfmubUo3PKTEBt2WOF0agdYHaWmmAB34ff4Ud2etx/exec';
 
-// ===== スプレッドシートに送信 =====
 async function sendToSheet(rec) {
   try {
-    const res = await fetch(GAS_URL, {
+    await fetch(GAS_URL, {
       method: 'POST',
       mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
