@@ -1,11 +1,10 @@
-const CACHE_NAME = 'vehicle-log-v1';
+const CACHE_NAME = 'vehicle-log-v2';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json'
 ];
 
-// インストール：ファイルをキャッシュ
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
@@ -13,7 +12,6 @@ self.addEventListener('install', event => {
   self.skipWaiting();
 });
 
-// アクティベート：古いキャッシュを削除
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
@@ -23,7 +21,6 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// フェッチ：キャッシュ優先（オフライン対応）
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request).then(cached => {
