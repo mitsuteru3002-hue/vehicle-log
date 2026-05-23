@@ -599,18 +599,27 @@ function saveRecord() {
   };
 
   records.unshift(rec);
-  localStorage.setItem('vehicleLog', JSON.stringify(records));
+  localStorage.setItem("vehicleLog", JSON.stringify(records));
 
-  // トースト
-  const toast = document.getElementById('toast');
-  toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 2000);
+  // スプレッドシートに送信
+  const btn = document.getElementById("save-btn");
+  btn.textContent = "📤 送信中...";
+  btn.disabled = true;
+  const nextMeterTemp = arrMeter;
+  sendToSheet(rec).then(ok => {
+    btn.textContent = "✅ 記録を保存する";
+    btn.disabled = false;
+    const toast = document.getElementById("toast");
+    toast.textContent = ok ? "✅ スプレッドシートに記録しました！" : "✅ 記録しました！（オフライン保存）";
+    toast.classList.add("show");
+    setTimeout(() => { toast.classList.remove("show"); toast.textContent = "✅ 記録しました！"; }, 3500);
+  });
 
   // フォームリセット（日付・メーターは引継ぎ）
-  const nextMeter = arrMeter;
+  
   document.getElementById('f-dep-time').value  = '';
   document.getElementById('f-arr-time').value  = '';
-  document.getElementById('f-dep-meter').value = nextMeter;
+    document.getElementById("f-dep-meter").value = nextMeterTemp;
   document.getElementById('f-arr-meter').value = '';
   document.getElementById('f-dest').value      = '';
   document.getElementById('f-purpose-other').value = '';
@@ -680,6 +689,44 @@ function clearAll() {
   records = [];
   localStorage.setItem('vehicleLog', '[]');
   updateHistoryTab();
+}
+
+// ===== Google Apps Script URL =====
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxpnvskfgyQuSQTN-9QNYTl9-i_b60wFMn4wFuxtGmcrPFWNOjvjbPKYfWSUKVB55nL/exec';
+
+// ===== スプレッドシートに送信 =====
+async function sendToSheet(rec) {
+  try {
+    await fetch(GAS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(rec)
+    });
+    return true;
+  } catch(err) {
+    console.error('送信エラー:', err);
+    return false;
+  }
+}
+
+// ===== Google Apps Script URL =====
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxpnvskfgyQuSQTN-9QNYTl9-i_b60wFMn4wFuxtGmcrPFWNOjvjbPKYfWSUKVB55nL/exec';
+
+// ===== スプレッドシートに送信 =====
+async function sendToSheet(rec) {
+  try {
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(rec)
+    });
+    return true;
+  } catch(err) {
+    console.error('送信エラー:', err);
+    return false;
+  }
 }
 
 // ===== Service Worker 登録 =====
