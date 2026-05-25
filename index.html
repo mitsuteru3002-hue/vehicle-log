@@ -697,10 +697,16 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbz9gmoM9QILszKXmGcRWhDv
 // ===== スプレッドシートに送信 =====
 async function sendToSheet(rec) {
   try {
-    await fetch(GAS_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
+    const encoded = encodeURIComponent(JSON.stringify(rec));
+    const url = GAS_URL + '?data=' + encoded;
+    const res = await fetch(url, { method: 'GET' });
+    const json = await res.json();
+    return json.result === 'success';
+  } catch(err) {
+    console.error('送信エラー:', err);
+    return false;
+  }
+},
       body: JSON.stringify(rec)
     });
     return true;
@@ -715,13 +721,18 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbz9gmoM9QILszKXmGcRWhDv
 
 async function sendToSheet(rec) {
   try {
-    await fetch(GAS_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(rec)
-    });
-    return true;
+    const encoded = encodeURIComponent(JSON.stringify(rec));
+    const url = GAS_URL + '?data=' + encoded;
+    const res = await fetch(url, { method: 'GET' });
+    const json = await res.json();
+    return json.result === 'success';
+  } catch(err) {
+    console.error('送信エラー:', err);
+    return false;
+  }
+});
+    const json = await res.json();
+    return json.result === 'success';
   } catch(err) {
     console.error('送信エラー:', err);
     return false;
