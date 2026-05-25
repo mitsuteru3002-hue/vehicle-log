@@ -699,7 +699,10 @@ async function sendToSheet(rec) {
   try {
     const encoded = encodeURIComponent(JSON.stringify(rec));
     const url = GAS_URL + '?data=' + encoded;
-    const res = await fetch(url, { method: 'GET' });
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 10000);
+    const res = await fetch(url, { method: 'GET', signal: controller.signal });
+    clearTimeout(timer);
     const json = await res.json();
     return json.result === 'success';
   } catch(err) {
@@ -723,7 +726,10 @@ async function sendToSheet(rec) {
   try {
     const encoded = encodeURIComponent(JSON.stringify(rec));
     const url = GAS_URL + '?data=' + encoded;
-    const res = await fetch(url, { method: 'GET' });
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 10000);
+    const res = await fetch(url, { method: 'GET', signal: controller.signal });
+    clearTimeout(timer);
     const json = await res.json();
     return json.result === 'success';
   } catch(err) {
