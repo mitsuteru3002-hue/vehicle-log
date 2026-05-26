@@ -386,27 +386,8 @@
         <input type="number" id="f-dep-meter" placeholder="例: 36602" inputmode="numeric">
       </div>
     </div>
-    <div class="field">
-      <label class="field-label">行き先</label>
-      <input type="text" id="f-dest" placeholder="例: ○○社、△△倉庫">
-    </div>
-    <div class="field">
-      <label class="field-label">目的</label>
-      <div class="purpose-btns" id="purpose-btns">
-        <button class="purpose-btn" onclick="setPurpose(this, '営業訪問')">営業訪問</button>
-        <button class="purpose-btn" onclick="setPurpose(this, '資材調達')">資材調達</button>
-        <button class="purpose-btn" onclick="setPurpose(this, '配送')">配送</button>
-        <button class="purpose-btn" onclick="setPurpose(this, '出張')">出張</button>
-        <button class="purpose-btn" onclick="setPurpose(this, 'その他')">その他</button>
-      </div>
-      <input type="text" id="f-purpose-other" placeholder="目的を入力" style="margin-top:8px;display:none;">
-    </div>
-    <!-- アルコール出発 -->
-    <div class="field">
-      <label class="field-label">アルコール数値（出発）</label>
-      <input type="number" id="f-alc-dep" placeholder="0.00" step="0.01" inputmode="decimal">
-    </div>
-  </div>
+
+
 
   <!-- 帰着 -->
   <div class="card">
@@ -456,10 +437,6 @@
         <div class="field">
           <label class="field-label">給油量 (L)</label>
           <input type="number" id="f-fuel-l" placeholder="例: 32.2" step="0.1" inputmode="decimal">
-        </div>
-        <div class="field">
-          <label class="field-label">給油代 (円)</label>
-          <input type="number" id="f-fuel-yen" placeholder="例: 5800" inputmode="numeric">
         </div>
       </div>
     </div>
@@ -563,10 +540,8 @@ function saveRecord() {
   const date     = document.getElementById('f-date').value;
   const depTime  = document.getElementById('f-dep-time').value;
   const depMeter = document.getElementById('f-dep-meter').value;
-  const dest     = document.getElementById('f-dest').value;
-
-  if (!date || !depTime || !depMeter || !dest) {
-    alert('日付・出発時刻・出発メーター・行き先は必須です');
+  if (!date || !depTime || !depMeter) {
+    alert('日付・出発時刻・出発メーターは必須です');
     return;
   }
 
@@ -581,8 +556,16 @@ function saveRecord() {
   const fuelChk = document.getElementById('f-fuel-chk').checked;
   const abnormText = abnorm === '有' ? document.getElementById('f-abnorm-text').value : '';
 
+  // 日付を5/26(火)形式に変換
+  const dateObj = new Date(date);
+  const weekdays = ['日','月','火','水','木','金','土'];
+  const m = dateObj.getMonth() + 1;
+  const d = dateObj.getDate();
+  const w = weekdays[dateObj.getDay()];
+  const dateFormatted = m + '/' + d + '(' + w + ')';
+
   const rec = {
-    date,
+    date: dateFormatted,
     depTime,
     arrTime:  document.getElementById('f-arr-time').value,
     depMeter: parseFloat(depMeter),
@@ -592,7 +575,7 @@ function saveRecord() {
     purpose:  purposeVal,
     abnorm:   abnorm === '有' ? (abnormText || '有') : '無',
     fuel:     fuelChk ? (document.getElementById('f-fuel-l').value || '') : '',
-    fuelYen:  fuelChk ? (document.getElementById('f-fuel-yen').value || '') : '',
+    fuelYen:  '',
     alcDep:   document.getElementById('f-alc-dep').value || '0.00',
     alcArr:   document.getElementById('f-alc-arr').value || '0.00',
     remarks:  document.getElementById('f-remarks').value,
@@ -621,20 +604,15 @@ function saveRecord() {
   document.getElementById('f-arr-time').value  = '';
     document.getElementById("f-dep-meter").value = nextMeterTemp;
   document.getElementById('f-arr-meter').value = '';
-  document.getElementById('f-dest').value      = '';
-  document.getElementById('f-purpose-other').value = '';
   document.getElementById('f-abnorm-text').value   = '';
   document.getElementById('f-fuel-chk').checked    = false;
   document.getElementById('f-fuel-l').value    = '';
-  document.getElementById('f-fuel-yen').value  = '';
   document.getElementById('f-alc-dep').value   = '0.00';
   document.getElementById('f-alc-arr').value   = '0.00';
   document.getElementById('f-remarks').value   = '';
-  document.querySelectorAll('.purpose-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('fuel-fields').classList.add('hidden');
   document.getElementById('dist-banner').classList.remove('show');
   document.getElementById('f-abnorm-text').style.display = 'none';
-  document.getElementById('f-purpose-other').style.display = 'none';
   setAbnorm('無');
   purpose = '';
 }
