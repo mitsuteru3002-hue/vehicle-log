@@ -552,10 +552,6 @@ function saveRecord() {
   const dist = (depMeter && arrMeter && parseFloat(arrMeter) >= parseFloat(depMeter))
     ? parseFloat(arrMeter) - parseFloat(depMeter) : '';
 
-  const purposeVal = purpose === 'その他'
-    ? document.getElementById('f-purpose-other').value
-    : purpose;
-
   const fuelChk = document.getElementById('f-fuel-chk').checked;
   const abnormText = abnorm === '有' ? document.getElementById('f-abnorm-text').value : '';
 
@@ -574,8 +570,6 @@ function saveRecord() {
     depMeter: parseFloat(depMeter),
     arrMeter: arrMeter ? parseFloat(arrMeter) : '',
     dist,
-    dest,
-    purpose:  purposeVal,
     abnorm:   abnorm === '有' ? (abnormText || '有') : '無',
     fuel:     fuelChk ? (document.getElementById('f-fuel-l').value || '') : '',
     fuelYen:  '',
@@ -636,7 +630,7 @@ function updateHistoryTab() {
         <span class="record-date">${r.date}</span>
         ${r.dist !== '' ? `<span class="record-dist">${r.dist} km</span>` : ''}
       </div>
-      <div class="record-dest">🏁 ${r.dest}${r.purpose ? ' ／ ' + r.purpose : ''}</div>
+      <div class="record-dest">🏁 ${r.abnorm !== '無' ? '⚠️ ' + r.abnorm : '異常なし'}</div>
       <div class="record-sub">
         ${r.depTime ? '出発 ' + r.depTime : ''}${r.arrTime ? ' → 帰着 ' + r.arrTime : ''}
         ${r.fuel ? ' ⛽ ' + r.fuel + 'L' : ''}
@@ -652,7 +646,7 @@ function downloadCSV() {
   const header = '日付,出発時刻,帰着時刻,出発メーター(km),帰着メーター(km),走行距離(km),行き先,目的,異常,燃料補給(L),給油代(円),アルコール出発,アルコール帰着,備考';
   const rows = records.map(r =>
     [r.date, r.depTime, r.arrTime, r.depMeter, r.arrMeter, r.dist,
-     r.dest, r.purpose, r.abnorm, r.fuel, r.fuelYen,
+     r.abnorm, r.fuel, r.fuelYen,
      r.alcDep, r.alcArr, r.remarks].join(',')
   );
   const csv = '\uFEFF' + [header, ...rows].join('\n');
