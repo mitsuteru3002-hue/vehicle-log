@@ -1,4 +1,4 @@
-// キャッシュを使わない（常に最新版を取得）
+// Service Worker無効化版
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', event => {
   event.waitUntil(
@@ -7,5 +7,5 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 self.addEventListener('fetch', event => {
-  event.respondWith(fetch(event.request));
+  event.respondWith(fetch(event.request.url + '?nocache=' + Date.now()));
 });
