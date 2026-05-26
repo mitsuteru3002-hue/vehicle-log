@@ -691,34 +691,6 @@ function clearAll() {
   updateHistoryTab();
 }
 
-// ===== Google Apps Script URL =====
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbz9gmoM9QILszKXmGcRWhDvGFehfmubUo3PKTEBt2WOF0agdYHaWmmAB34ff4Ud2etx/exec';
-
-// ===== スプレッドシートに送信 =====
-async function sendToSheet(rec) {
-  try {
-    const encoded = encodeURIComponent(JSON.stringify(rec));
-    const url = GAS_URL + '?data=' + encoded;
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 10000);
-    const res = await fetch(url, { method: 'GET', signal: controller.signal });
-    clearTimeout(timer);
-    const json = await res.json();
-    return json.result === 'success';
-  } catch(err) {
-    console.error('送信エラー:', err);
-    return false;
-  }
-},
-      body: JSON.stringify(rec)
-    });
-    return true;
-  } catch(err) {
-    console.error('送信エラー:', err);
-    return false;
-  }
-}
-
 // ===== Google Apps Script =====
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbz9gmoM9QILszKXmGcRWhDvGFehfmubUo3PKTEBt2WOF0agdYHaWmmAB34ff4Ud2etx/exec';
 
@@ -727,20 +699,12 @@ async function sendToSheet(rec) {
     const encoded = encodeURIComponent(JSON.stringify(rec));
     const url = GAS_URL + '?data=' + encoded;
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 10000);
+    const timer = setTimeout(() => controller.abort(), 8000);
     const res = await fetch(url, { method: 'GET', signal: controller.signal });
     clearTimeout(timer);
     const json = await res.json();
     return json.result === 'success';
   } catch(err) {
-    console.error('送信エラー:', err);
-    return false;
-  }
-});
-    const json = await res.json();
-    return json.result === 'success';
-  } catch(err) {
-    console.error('送信エラー:', err);
     return false;
   }
 }
