@@ -690,9 +690,11 @@ async function sendToSheet(rec) {
   }
 }
 
-// ===== Service Worker 登録 =====
+// Service Worker無効化
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').catch(err => console.log('SW:', err));
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    regs.forEach(reg => reg.unregister());
+  });
 }
 </script>
 </body>
