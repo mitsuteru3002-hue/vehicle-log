@@ -9,333 +9,104 @@
   <meta name="apple-mobile-web-app-title" content="運行記録">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <title>車両運行記録 v6</title>
+  <title>車両運行記録 v7</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --navy: #1a3a5c;
-      --navy-dark: #0f2237;
-      --blue: #2563eb;
-      --blue-light: #dbeafe;
-      --green: #059669;
-      --green-light: #d1fae5;
-      --yellow: #fffbeb;
-      --yellow-border: #fde68a;
-      --gray-50: #f8fafc;
-      --gray-100: #f1f5f9;
-      --gray-200: #e2e8f0;
-      --gray-400: #94a3b8;
-      --gray-600: #475569;
-      --gray-800: #1e293b;
-      --red: #dc2626;
-      --white: #ffffff;
-      --radius: 12px;
+      --navy: #1a3a5c; --blue: #2563eb; --blue-light: #dbeafe;
+      --green: #059669; --green-light: #d1fae5;
+      --orange: #d97706; --orange-light: #fef3c7;
+      --gray-50: #f8fafc; --gray-100: #f1f5f9; --gray-200: #e2e8f0;
+      --gray-400: #94a3b8; --gray-600: #475569; --gray-800: #1e293b;
+      --red: #dc2626; --white: #ffffff; --radius: 12px;
       --shadow: 0 2px 12px rgba(0,0,0,0.10);
     }
+    html, body { height: 100%; font-family: 'Noto Sans JP', sans-serif; background: #f1f5f9; color: var(--gray-800); -webkit-tap-highlight-color: transparent; }
 
-    html, body {
-      height: 100%;
-      font-family: 'Noto Sans JP', sans-serif;
-      background: var(--gray-100);
-      color: var(--gray-800);
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    /* ===== HEADER ===== */
-    #app-header {
-      background: var(--navy);
-      color: white;
-      padding: env(safe-area-inset-top, 0) 0 0;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.25);
-    }
-    .header-inner {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 14px 16px 10px;
-    }
+    /* HEADER */
+    #app-header { background: var(--navy); color: white; padding: env(safe-area-inset-top,0) 0 0; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.25); }
+    .header-inner { display: flex; align-items: center; gap: 10px; padding: 14px 16px 10px; }
     .header-icon { font-size: 22px; }
-    .header-title { font-size: 15px; font-weight: 700; letter-spacing: 0.5px; }
+    .header-title { font-size: 15px; font-weight: 700; }
     .header-sub { font-size: 10px; opacity: 0.6; margin-top: 1px; }
+    .tabs { display: flex; padding: 0 12px 10px; gap: 6px; }
+    .tab-btn { flex: 1; padding: 8px 0; border: none; border-radius: 8px; font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; transition: all .2s; background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.8); }
+    .tab-btn.active { background: white; color: var(--navy); }
 
-    /* タブ */
-    .tabs {
-      display: flex;
-      padding: 0 12px 10px;
-      gap: 6px;
-    }
-    .tab-btn {
-      flex: 1;
-      padding: 8px 0;
-      border: none;
-      border-radius: 8px;
-      font-family: inherit;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all .2s;
-      background: rgba(255,255,255,0.15);
-      color: rgba(255,255,255,0.8);
-    }
-    .tab-btn.active {
-      background: white;
-      color: var(--navy);
-    }
+    /* MAIN */
+    #main { padding: 14px 14px calc(env(safe-area-inset-bottom,0px) + 20px); max-width: 520px; margin: 0 auto; }
 
-    /* ===== MAIN ===== */
-    #main {
-      padding: 14px 14px calc(env(safe-area-inset-bottom, 0px) + 20px);
-      max-width: 520px;
-      margin: 0 auto;
-    }
+    /* TOAST */
+    #toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%) translateY(-10px); background: var(--green); color: white; padding: 10px 24px; border-radius: 24px; font-weight: 700; font-size: 14px; opacity: 0; pointer-events: none; transition: all .3s; z-index: 999; white-space: nowrap; }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-    /* ===== TOAST ===== */
-    #toast {
-      position: fixed;
-      top: 80px;
-      left: 50%;
-      transform: translateX(-50%) translateY(-10px);
-      background: var(--green);
-      color: white;
-      padding: 10px 24px;
-      border-radius: 24px;
-      font-weight: 700;
-      font-size: 14px;
-      opacity: 0;
-      pointer-events: none;
-      transition: all .3s;
-      z-index: 999;
-      white-space: nowrap;
-    }
-    #toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
+    /* MODE SELECTOR */
+    .mode-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+    .mode-btn { padding: 14px 8px; border: 2px solid var(--gray-200); border-radius: var(--radius); background: white; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; transition: all .2s; text-align: center; }
+    .mode-btn .mode-icon { font-size: 24px; display: block; margin-bottom: 4px; }
+    .mode-btn .mode-label { display: block; color: var(--gray-600); }
+    .mode-btn.active-morning { border-color: var(--orange); background: var(--orange-light); }
+    .mode-btn.active-morning .mode-label { color: var(--orange); }
+    .mode-btn.active-evening { border-color: var(--navy); background: var(--blue-light); }
+    .mode-btn.active-evening .mode-label { color: var(--navy); }
 
-    /* ===== CARD ===== */
-    .card {
-      background: white;
-      border-radius: var(--radius);
-      padding: 14px 15px;
-      margin-bottom: 11px;
-      box-shadow: var(--shadow);
-    }
-    .card-title {
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--navy);
-      letter-spacing: 0.8px;
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
+    /* CARD */
+    .card { background: white; border-radius: var(--radius); padding: 14px 15px; margin-bottom: 11px; box-shadow: var(--shadow); }
+    .card-title { font-size: 11px; font-weight: 700; color: var(--navy); letter-spacing: 0.8px; margin-bottom: 12px; }
+    .card.morning-card { border-left: 3px solid var(--orange); }
+    .card.evening-card { border-left: 3px solid var(--navy); }
 
-    /* ===== FIELD ===== */
+    /* FIELD */
     .field { margin-bottom: 10px; }
     .field:last-child { margin-bottom: 0; }
-    .field-label {
-      display: block;
-      font-size: 11px;
-      color: var(--gray-600);
-      font-weight: 500;
-      margin-bottom: 4px;
-    }
-    .field-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
+    .field-label { display: block; font-size: 11px; color: var(--gray-600); font-weight: 500; margin-bottom: 4px; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 
-    /* ===== INPUT ===== */
-    input[type="date"],
-    input[type="time"],
-    input[type="number"],
-    input[type="text"],
-    textarea {
-      width: 100%;
-      padding: 9px 11px;
-      border: 1.5px solid var(--gray-200);
-      border-radius: 8px;
-      font-family: inherit;
-      font-size: 14px;
-      color: var(--gray-800);
-      background: var(--gray-50);
-      outline: none;
-      transition: border-color .2s;
-      -webkit-appearance: none;
+    /* INPUT */
+    input[type="date"], input[type="time"], input[type="number"], input[type="text"], textarea {
+      width: 100%; padding: 9px 11px; border: 1.5px solid var(--gray-200); border-radius: 8px;
+      font-family: inherit; font-size: 14px; color: var(--gray-800); background: var(--gray-50);
+      outline: none; transition: border-color .2s; -webkit-appearance: none;
     }
-    input:focus, textarea:focus {
-      border-color: var(--blue);
-      background: white;
-    }
+    input:focus, textarea:focus { border-color: var(--blue); background: white; }
     textarea { height: 64px; resize: none; }
-
-    /* 時刻入力 + 今ボタン */
-    .time-wrap {
-      display: flex;
-      gap: 6px;
-      align-items: center;
-    }
+    .time-wrap { display: flex; gap: 6px; align-items: center; }
     .time-wrap input { flex: 1; }
-    .now-btn {
-      padding: 0 11px;
-      height: 38px;
-      background: var(--navy);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-family: inherit;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
-
-    /* 目的ボタン */
-    .purpose-btns {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-    .purpose-btn {
-      padding: 6px 13px;
-      border-radius: 20px;
-      border: 1.5px solid var(--gray-200);
-      background: white;
-      color: var(--gray-600);
-      font-family: inherit;
-      font-size: 12px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all .15s;
-    }
-    .purpose-btn.active {
-      background: var(--navy);
-      color: white;
-      border-color: var(--navy);
-    }
+    .now-btn { padding: 0 11px; height: 38px; background: var(--navy); color: white; border: none; border-radius: 8px; font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
 
     /* 走行距離バナー */
-    #dist-banner {
-      background: var(--blue-light);
-      border: 1.5px solid #bfdbfe;
-      border-radius: 8px;
-      padding: 9px 13px;
-      display: none;
-      align-items: center;
-      gap: 8px;
-      margin-top: 8px;
-    }
+    #dist-banner { background: var(--blue-light); border: 1.5px solid #bfdbfe; border-radius: 8px; padding: 9px 13px; display: none; align-items: center; gap: 8px; margin-top: 8px; }
     #dist-banner.show { display: flex; }
     #dist-banner span { font-weight: 700; color: var(--blue); font-size: 15px; }
 
+    /* 前回メーター表示 */
+    .meter-hint { font-size: 11px; color: var(--gray-400); margin-top: 3px; }
+
+    /* 異常ボタン */
+    .abnorm-btns { display: flex; gap: 6px; margin-bottom: 8px; }
+    .abnorm-btn { padding: 6px 16px; border-radius: 20px; border: 1.5px solid var(--gray-200); background: white; color: var(--gray-600); font-family: inherit; font-size: 12px; font-weight: 500; cursor: pointer; transition: all .15s; }
+    .abnorm-btn.active { background: var(--navy); color: white; border-color: var(--navy); }
+
     /* 給油チェック */
-    .check-label {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--gray-800);
-      margin-bottom: 10px;
-    }
-    .check-label input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      accent-color: var(--navy);
-      cursor: pointer;
-      flex-shrink: 0;
-    }
+    .check-label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; font-weight: 500; margin-bottom: 10px; }
+    .check-label input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--navy); cursor: pointer; flex-shrink: 0; }
 
-    /* ===== 保存ボタン ===== */
-    #save-btn {
-      width: 100%;
-      padding: 15px;
-      background: var(--navy);
-      color: white;
-      border: none;
-      border-radius: var(--radius);
-      font-family: inherit;
-      font-size: 15px;
-      font-weight: 700;
-      cursor: pointer;
-      letter-spacing: 0.5px;
-      box-shadow: 0 4px 14px rgba(26,58,92,0.35);
-      margin-top: 4px;
-      transition: transform .1s, box-shadow .1s;
-    }
-    #save-btn:active { transform: scale(0.98); box-shadow: 0 2px 6px rgba(26,58,92,0.25); }
+    /* 送信ボタン */
+    .send-btn { width: 100%; padding: 15px; border: none; border-radius: var(--radius); font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; letter-spacing: 0.5px; margin-top: 4px; transition: transform .1s; }
+    .send-btn:active { transform: scale(0.98); }
+    .send-btn.morning { background: var(--orange); color: white; box-shadow: 0 4px 14px rgba(217,119,6,0.35); }
+    .send-btn.evening { background: var(--navy); color: white; box-shadow: 0 4px 14px rgba(26,58,92,0.35); }
 
-    /* ===== 記録一覧 ===== */
-    #csv-btn {
-      width: 100%;
-      padding: 12px;
-      background: var(--green);
-      color: white;
-      border: none;
-      border-radius: var(--radius);
-      font-family: inherit;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      margin-bottom: 12px;
-      box-shadow: 0 2px 8px rgba(5,150,105,0.3);
-    }
-    #clear-btn {
-      width: 100%;
-      padding: 10px;
-      background: white;
-      color: var(--red);
-      border: 1.5px solid #fecaca;
-      border-radius: var(--radius);
-      font-family: inherit;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      margin-bottom: 12px;
-    }
-
-    .record-card {
-      background: white;
-      border-radius: var(--radius);
-      padding: 12px 14px;
-      margin-bottom: 8px;
-      box-shadow: var(--shadow);
-    }
-    .record-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 5px;
-    }
+    /* 記録一覧 */
+    #csv-btn { width: 100%; padding: 12px; background: var(--green); color: white; border: none; border-radius: var(--radius); font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; margin-bottom: 8px; }
+    #clear-btn { width: 100%; padding: 10px; background: white; color: var(--red); border: 1.5px solid #fecaca; border-radius: var(--radius); font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; margin-bottom: 12px; }
+    .record-card { background: white; border-radius: var(--radius); padding: 12px 14px; margin-bottom: 8px; box-shadow: var(--shadow); }
+    .record-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
     .record-date { font-weight: 700; color: var(--navy); font-size: 13px; }
-    .record-dist {
-      background: var(--blue-light);
-      color: var(--blue);
-      border-radius: 20px;
-      padding: 2px 10px;
-      font-size: 11px;
-      font-weight: 700;
-    }
-    .record-dest { font-size: 12px; color: var(--gray-800); }
+    .record-dist { background: var(--blue-light); color: var(--blue); border-radius: 20px; padding: 2px 10px; font-size: 11px; font-weight: 700; }
     .record-sub { font-size: 11px; color: var(--gray-400); margin-top: 3px; }
-
-    .empty-msg {
-      text-align: center;
-      color: var(--gray-400);
-      padding: 60px 0;
-      font-size: 14px;
-    }
-
-    /* ===== HIDDEN ===== */
+    .empty-msg { text-align: center; color: var(--gray-400); padding: 60px 0; font-size: 14px; }
     .hidden { display: none !important; }
   </style>
 </head>
@@ -350,30 +121,41 @@
     </div>
   </div>
   <div class="tabs">
-    <button class="tab-btn active" onclick="showTab('input')">📝 入力</button>
-    <button class="tab-btn" onclick="showTab('history')" id="history-tab-btn">📋 記録一覧</button>
+    <button class="tab-btn active" onclick="showTab('input', this)">📝 入力</button>
+    <button class="tab-btn" onclick="showTab('history', this)" id="history-tab-btn">📋 記録一覧</button>
   </div>
 </div>
 
-<div id="toast">✅ 記録しました！</div>
+<div id="toast">✅ 送信しました！</div>
 
-<!-- ===== 入力タブ ===== -->
+<!-- 入力タブ -->
 <div id="tab-input">
 <div id="main">
 
-  <!-- 基本情報 -->
+  <!-- モード選択 -->
+  <div class="mode-selector">
+    <button class="mode-btn active-morning" id="btn-morning" onclick="setMode('morning')">
+      <span class="mode-icon">🌅</span>
+      <span class="mode-label">朝（出発時）</span>
+    </button>
+    <button class="mode-btn" id="btn-evening" onclick="setMode('evening')">
+      <span class="mode-icon">🌆</span>
+      <span class="mode-label">夕方（帰着時）</span>
+    </button>
+  </div>
+
+  <!-- 日付 -->
   <div class="card">
-    <div class="card-title">📅 基本情報</div>
+    <div class="card-title">📅 日付</div>
     <div class="field">
-      <label class="field-label">日付</label>
       <input type="date" id="f-date">
     </div>
   </div>
 
-  <!-- 出発 -->
-  <div class="card">
-    <div class="card-title">🟢 出発</div>
-    <div class="field-row">
+  <!-- 朝モード -->
+  <div id="morning-section">
+    <div class="card morning-card">
+      <div class="card-title">🌅 出発情報</div>
       <div class="field">
         <label class="field-label">出発時刻</label>
         <div class="time-wrap">
@@ -382,149 +164,149 @@
         </div>
       </div>
       <div class="field">
-        <label class="field-label">出発メーター (km)</label>
-        <input type="number" id="f-dep-meter" placeholder="例: 36602" inputmode="numeric">
+        <label class="field-label">アルコール数値（出発）</label>
+        <input type="number" id="f-alc-dep" placeholder="0.00" step="0.01" inputmode="decimal" value="0.00">
       </div>
     </div>
-    <!-- アルコール出発 -->
-    <div class="field">
-      <label class="field-label">アルコール数値（出発）</label>
-      <input type="number" id="f-alc-dep" placeholder="0.00" step="0.01" inputmode="decimal" value="0.00">
-    </div>
-
-  <!-- 帰着 -->
-  <div class="card">
-    <div class="card-title">🔴 帰着</div>
-    <div class="field-row">
-      <div class="field">
-        <label class="field-label">帰着時刻</label>
-        <div class="time-wrap">
-          <input type="time" id="f-arr-time">
-          <button class="now-btn" onclick="setNow('f-arr-time')">今</button>
-        </div>
-      </div>
-      <div class="field">
-        <label class="field-label">帰着メーター (km)</label>
-        <input type="number" id="f-arr-meter" placeholder="例: 36672" inputmode="numeric">
-      </div>
-    </div>
-    <!-- 走行距離バナー -->
-    <div id="dist-banner">
-      <span>📏</span>
-      <span id="dist-val"></span>
-    </div>
-    <!-- アルコール帰着 -->
-    <div class="field" style="margin-top:10px;">
-      <label class="field-label">アルコール数値（帰着）</label>
-      <input type="number" id="f-alc-arr" placeholder="0.00" step="0.01" inputmode="decimal">
-    </div>
+    <button class="send-btn morning" onclick="sendMorning()">🌅 出発を送信する</button>
   </div>
 
-  <!-- 異常・給油・備考 -->
-  <div class="card">
-    <div class="card-title">📋 その他</div>
-    <div class="field">
-      <label class="field-label">異常</label>
-      <div class="purpose-btns" style="margin-bottom:8px;">
-        <button class="purpose-btn active" id="abnorm-none" onclick="setAbnorm('無')">無</button>
-        <button class="purpose-btn" id="abnorm-yes" onclick="setAbnorm('有')">有（内容を入力）</button>
-      </div>
-      <input type="text" id="f-abnorm-text" placeholder="異常の内容" style="display:none;">
-    </div>
-    <div class="field">
-      <label class="check-label">
-        <input type="checkbox" id="f-fuel-chk" onchange="toggleFuel()">
-        今日給油した
-      </label>
-      <div id="fuel-fields" class="field-row hidden">
+  <!-- 夕方モード -->
+  <div id="evening-section" class="hidden">
+    <div class="card evening-card">
+      <div class="card-title">🌆 帰着情報</div>
+      <div class="field-row">
         <div class="field">
-          <label class="field-label">給油量 (L)</label>
-          <input type="number" id="f-fuel-l" placeholder="例: 32.2" step="0.1" inputmode="decimal">
+          <label class="field-label">帰着時刻</label>
+          <div class="time-wrap">
+            <input type="time" id="f-arr-time">
+            <button class="now-btn" onclick="setNow('f-arr-time')">今</button>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label">帰着メーター (km)</label>
+          <input type="number" id="f-arr-meter" placeholder="例: 36672" inputmode="numeric">
         </div>
       </div>
+      <div id="dist-banner">
+        <span>📏</span>
+        <span id="dist-val"></span>
+      </div>
+      <div class="field" style="margin-top:10px;">
+        <label class="field-label">アルコール数値（帰着）</label>
+        <input type="number" id="f-alc-arr" placeholder="0.00" step="0.01" inputmode="decimal" value="0.00">
+      </div>
     </div>
-    <div class="field">
-      <label class="field-label">備考</label>
-      <textarea id="f-remarks" placeholder="特記事項があれば"></textarea>
+
+    <div class="card evening-card">
+      <div class="card-title">📋 その他</div>
+      <div class="field">
+        <label class="field-label">異常</label>
+        <div class="abnorm-btns">
+          <button class="abnorm-btn active" id="abnorm-none" onclick="setAbnorm('無')">無</button>
+          <button class="abnorm-btn" id="abnorm-yes" onclick="setAbnorm('有')">有（内容を入力）</button>
+        </div>
+        <input type="text" id="f-abnorm-text" placeholder="異常の内容" style="display:none;">
+      </div>
+      <div class="field">
+        <label class="check-label">
+          <input type="checkbox" id="f-fuel-chk" onchange="toggleFuel()">
+          今日給油した
+        </label>
+        <div id="fuel-fields" class="hidden">
+          <div class="field">
+            <label class="field-label">給油量 (L)</label>
+            <input type="number" id="f-fuel-l" placeholder="例: 32.2" step="0.1" inputmode="decimal">
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">備考</label>
+        <textarea id="f-remarks" placeholder="特記事項があれば"></textarea>
+      </div>
     </div>
+    <button class="send-btn evening" onclick="sendEvening()">🌆 帰着を送信する</button>
   </div>
 
-  <button id="save-btn" onclick="saveRecord()">✅ 記録を保存する</button>
-
 </div>
 </div>
 
-<!-- ===== 記録一覧タブ ===== -->
+<!-- 記録一覧タブ -->
 <div id="tab-history" class="hidden">
 <div id="main">
-  <button id="csv-btn" onclick="downloadCSV()">⬇️ CSVダウンロード（スプレッドシートに貼り付け可）</button>
+  <button id="csv-btn" onclick="downloadCSV()">⬇️ CSVダウンロード</button>
   <button id="clear-btn" onclick="clearAll()">🗑️ すべての記録を削除</button>
   <div id="record-list"></div>
 </div>
 </div>
 
 <script>
-// ===== 状態 =====
-let records = JSON.parse(localStorage.getItem('vehicleLog') || '[]');
-let purpose = '';
-let abnorm  = '無';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbzMdyhGh9sVcIoi_gB7F-hJ4OnfQobYpDczU_EhB1Spl0e9nOVFiKrvAH6GZnLlFe-4/exec';
 
-// ===== 初期化 =====
+let records = JSON.parse(localStorage.getItem('vehicleLog') || '[]');
+let currentMode = 'morning';
+let abnorm = '無';
+
+// 初期化
 document.addEventListener('DOMContentLoaded', () => {
   const today = new Date();
   document.getElementById('f-date').value = today.toISOString().split('T')[0];
-  document.getElementById('f-alc-dep').value = '0.00';
-  document.getElementById('f-alc-arr').value = '0.00';
-  updateHistoryTab();
 
-  // メーター変化で走行距離を更新
-  document.getElementById('f-dep-meter').addEventListener('input', updateDist);
+  // 前回の帰着メーターを出発メーターとして保存
+  const lastArrMeter = localStorage.getItem('lastArrMeter') || '';
+  if (lastArrMeter) {
+    document.getElementById('f-arr-meter').placeholder = `前回: ${lastArrMeter}`;
+  }
+
+  updateHistoryTab();
   document.getElementById('f-arr-meter').addEventListener('input', updateDist);
 });
 
-// ===== タブ切替 =====
-function showTab(tab) {
+// タブ切替
+function showTab(tab, btn) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
   document.getElementById('tab-input').classList.toggle('hidden', tab !== 'input');
   document.getElementById('tab-history').classList.toggle('hidden', tab !== 'history');
-  event.target.classList.add('active');
   if (tab === 'history') updateHistoryTab();
 }
 
-// ===== 今ボタン =====
-function setNow(id) {
-  const now = new Date();
-  const hh = String(now.getHours()).padStart(2,'0');
-  const mm = String(now.getMinutes()).padStart(2,'0');
-  document.getElementById(id).value = `${hh}:${mm}`;
-  updateDist();
+// モード切替
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('btn-morning').className = 'mode-btn' + (mode === 'morning' ? ' active-morning' : '');
+  document.getElementById('btn-evening').className = 'mode-btn' + (mode === 'evening' ? ' active-evening' : '');
+  document.getElementById('morning-section').classList.toggle('hidden', mode !== 'morning');
+  document.getElementById('evening-section').classList.toggle('hidden', mode !== 'evening');
 }
 
-// ===== 走行距離 =====
+// 今ボタン
+function setNow(id) {
+  const now = new Date();
+  document.getElementById(id).value = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+}
+
+// 日付フォーマット（5/26(火)形式）
+function formatDate(dateStr) {
+  const days = ['日','月','火','水','木','金','土'];
+  const d = new Date(dateStr);
+  return `${d.getMonth()+1}/${d.getDate()}(${days[d.getDay()]})`;
+}
+
+// 走行距離計算
 function updateDist() {
-  const dep = parseFloat(document.getElementById('f-dep-meter').value);
+  const lastMeter = parseFloat(localStorage.getItem('lastArrMeter') || '0');
   const arr = parseFloat(document.getElementById('f-arr-meter').value);
   const banner = document.getElementById('dist-banner');
-  if (!isNaN(dep) && !isNaN(arr) && arr >= dep) {
-    document.getElementById('dist-val').textContent = `走行距離： ${arr - dep} km`;
+  if (!isNaN(arr) && lastMeter > 0 && arr >= lastMeter) {
+    document.getElementById('dist-val').textContent = `走行距離： ${arr - lastMeter} km`;
     banner.classList.add('show');
   } else {
     banner.classList.remove('show');
   }
 }
 
-// ===== 目的 =====
-function setPurpose(btn, val) {
-  document.querySelectorAll('.purpose-btn').forEach(b => {
-    if (b.closest('#purpose-btns')) b.classList.remove('active');
-  });
-  btn.classList.add('active');
-  purpose = val;
-  const other = document.getElementById('f-purpose-other');
-  other.style.display = val === 'その他' ? 'block' : 'none';
-}
-
-// ===== 異常 =====
+// 異常
 function setAbnorm(val) {
   abnorm = val;
   document.getElementById('abnorm-none').classList.toggle('active', val === '無');
@@ -532,105 +314,160 @@ function setAbnorm(val) {
   document.getElementById('f-abnorm-text').style.display = val === '有' ? 'block' : 'none';
 }
 
-// ===== 給油 =====
+// 給油
 function toggleFuel() {
-  const chk = document.getElementById('f-fuel-chk').checked;
-  document.getElementById('fuel-fields').classList.toggle('hidden', !chk);
+  document.getElementById('fuel-fields').classList.toggle('hidden', !document.getElementById('f-fuel-chk').checked);
 }
 
-// ===== 保存 =====
-function saveRecord() {
-  const date     = document.getElementById('f-date').value;
-  const depTime  = document.getElementById('f-dep-time').value;
-  const depMeter = document.getElementById('f-dep-meter').value;
-  if (!date || !depTime || !depMeter) {
-    alert('日付・出発時刻・出発メーターは必須です');
-    return;
+// 朝送信
+async function sendMorning() {
+  const date = document.getElementById('f-date').value;
+  const depTime = document.getElementById('f-dep-time').value;
+  if (!date || !depTime) { alert('日付と出発時刻は必須です'); return; }
+
+  const dateFormatted = formatDate(date);
+  const lastArrMeter = localStorage.getItem('lastArrMeter') || '';
+  const alcDep = document.getElementById('f-alc-dep').value || '0.00';
+
+  const data = {
+    date: dateFormatted,
+    depTime,
+    arrTime: '',
+    depMeter: lastArrMeter ? parseFloat(lastArrMeter) : '',
+    arrMeter: '',
+    dist: '',
+    abnorm: '無',
+    fuel: '',
+    alcDep,
+    alcArr: '',
+    remarks: '',
+    type: 'morning'
+  };
+
+  // ローカル保存
+  const existing = records.findIndex(r => r.date === dateFormatted);
+  if (existing >= 0) {
+    records[existing] = { ...records[existing], ...data };
+  } else {
+    records.unshift(data);
   }
+  localStorage.setItem('vehicleLog', JSON.stringify(records));
 
+  await doSend(data, '🌅 出発を送信する', 'morning');
+
+  // リセット
+  document.getElementById('f-dep-time').value = '';
+  document.getElementById('f-alc-dep').value = '0.00';
+}
+
+// 夕方送信
+async function sendEvening() {
+  const date = document.getElementById('f-date').value;
+  const arrTime = document.getElementById('f-arr-time').value;
   const arrMeter = document.getElementById('f-arr-meter').value;
-  const dist = (depMeter && arrMeter && parseFloat(arrMeter) >= parseFloat(depMeter))
-    ? parseFloat(arrMeter) - parseFloat(depMeter) : '';
+  if (!date || !arrTime || !arrMeter) { alert('日付・帰着時刻・帰着メーターは必須です'); return; }
 
+  const dateFormatted = formatDate(date);
+  const lastArrMeter = localStorage.getItem('lastArrMeter') || '';
+  const depMeter = lastArrMeter ? parseFloat(lastArrMeter) : '';
+  const dist = (depMeter && parseFloat(arrMeter) >= depMeter) ? parseFloat(arrMeter) - depMeter : '';
   const fuelChk = document.getElementById('f-fuel-chk').checked;
   const abnormText = abnorm === '有' ? document.getElementById('f-abnorm-text').value : '';
 
-  // 日付を5/26(火)形式に変換
-  const dateObj = new Date(date);
-  const weekdays = ['日','月','火','水','木','金','土'];
-  const m = dateObj.getMonth() + 1;
-  const d = dateObj.getDate();
-  const w = weekdays[dateObj.getDay()];
-  const dateFormatted = m + '/' + d + '(' + w + ')';
+  // 朝のデータから出発時刻・アルコール出発を引継ぎ
+  const morningRec = records.find(r => r.date === dateFormatted);
+  const depTime = morningRec ? morningRec.depTime : '';
+  const alcDep = morningRec ? morningRec.alcDep : '0.00';
 
-  const rec = {
+  const data = {
     date: dateFormatted,
     depTime,
-    arrTime:  document.getElementById('f-arr-time').value,
-    depMeter: parseFloat(depMeter),
-    arrMeter: arrMeter ? parseFloat(arrMeter) : '',
+    arrTime,
+    depMeter,
+    arrMeter: parseFloat(arrMeter),
     dist,
-    abnorm:   abnorm === '有' ? (abnormText || '有') : '無',
-    fuel:     fuelChk ? (document.getElementById('f-fuel-l').value || '') : '',
-    fuelYen:  '',
-    alcDep:   document.getElementById('f-alc-dep').value || '0.00',
-    alcArr:   document.getElementById('f-alc-arr').value || '0.00',
-    remarks:  document.getElementById('f-remarks').value,
+    abnorm: abnorm === '有' ? (abnormText || '有') : '無',
+    fuel: fuelChk ? (document.getElementById('f-fuel-l').value || '') : '',
+    alcDep,
+    alcArr: document.getElementById('f-alc-arr').value || '0.00',
+    remarks: document.getElementById('f-remarks').value,
+    type: 'evening'
   };
 
-  records.unshift(rec);
-  localStorage.setItem("vehicleLog", JSON.stringify(records));
+  // 前回メーター保存
+  localStorage.setItem('lastArrMeter', arrMeter);
 
-  // スプレッドシートに送信
-  const btn = document.getElementById("save-btn");
-  btn.textContent = "📤 送信中...";
-  btn.disabled = true;
-  const nextMeterTemp = arrMeter;
-  sendToSheet(rec).then(ok => {
-    btn.textContent = "✅ 記録を保存する";
-    btn.disabled = false;
-    const toast = document.getElementById("toast");
-    toast.textContent = ok ? "✅ スプレッドシートに記録しました！" : "✅ 記録しました！（オフライン保存）";
-    toast.classList.add("show");
-    setTimeout(() => { toast.classList.remove("show"); toast.textContent = "✅ 記録しました！"; }, 3500);
-  });
+  // ローカル保存
+  const existing = records.findIndex(r => r.date === dateFormatted);
+  if (existing >= 0) {
+    records[existing] = { ...records[existing], ...data };
+  } else {
+    records.unshift(data);
+  }
+  localStorage.setItem('vehicleLog', JSON.stringify(records));
 
-  // フォームリセット（日付・メーターは引継ぎ）
-  
-  document.getElementById('f-dep-time').value  = '';
-  document.getElementById('f-arr-time').value  = '';
-    document.getElementById("f-dep-meter").value = nextMeterTemp;
+  await doSend(data, '🌆 帰着を送信する', 'evening');
+
+  // リセット
+  document.getElementById('f-arr-time').value = '';
   document.getElementById('f-arr-meter').value = '';
-  document.getElementById('f-abnorm-text').value   = '';
-  document.getElementById('f-fuel-chk').checked    = false;
-  document.getElementById('f-fuel-l').value    = '';
-  document.getElementById('f-alc-dep').value   = '0.00';
-  document.getElementById('f-alc-arr').value   = '0.00';
-  document.getElementById('f-remarks').value   = '';
+  document.getElementById('f-arr-meter').placeholder = `前回: ${arrMeter}`;
+  document.getElementById('f-alc-arr').value = '0.00';
+  document.getElementById('f-fuel-chk').checked = false;
   document.getElementById('fuel-fields').classList.add('hidden');
-  document.getElementById('dist-banner').classList.remove('show');
   document.getElementById('f-abnorm-text').style.display = 'none';
+  document.getElementById('f-remarks').value = '';
+  document.getElementById('dist-banner').classList.remove('show');
   setAbnorm('無');
-  purpose = '';
+  updateDist();
 }
 
-// ===== 記録一覧 =====
-function updateHistoryTab() {
-  const btn = document.getElementById('history-tab-btn');
-  btn.textContent = `📋 記録一覧 (${records.length})`;
+// 送信共通処理
+async function doSend(data, btnLabel, mode) {
+  const btnId = mode === 'morning' ? 'btn-morning-send' : 'btn-evening-send';
+  const btn = document.querySelector(`.send-btn.${mode}`);
+  btn.textContent = '📤 送信中...';
+  btn.disabled = true;
 
+  try {
+    const encoded = encodeURIComponent(JSON.stringify(data));
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 10000);
+    const res = await fetch(GAS_URL + '?data=' + encoded, { method: 'GET', signal: controller.signal });
+    clearTimeout(timer);
+    const json = await res.json();
+    const ok = json.result === 'success';
+    showToast(ok ? '✅ スプレッドシートに記録しました！' : '✅ 記録しました！（オフライン保存）');
+  } catch(err) {
+    showToast('✅ 記録しました！（オフライン保存）');
+  }
+
+  btn.textContent = btnLabel;
+  btn.disabled = false;
+  updateHistoryTab();
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// 記録一覧
+function updateHistoryTab() {
+  document.getElementById('history-tab-btn').textContent = `📋 記録一覧 (${records.length})`;
   const list = document.getElementById('record-list');
   if (records.length === 0) {
     list.innerHTML = '<div class="empty-msg">まだ記録がありません</div>';
     return;
   }
-  list.innerHTML = records.map((r, i) => `
+  list.innerHTML = records.map(r => `
     <div class="record-card">
       <div class="record-top">
         <span class="record-date">${r.date}</span>
-        ${r.dist !== '' ? `<span class="record-dist">${r.dist} km</span>` : ''}
+        ${r.dist !== '' && r.dist !== undefined ? `<span class="record-dist">${r.dist} km</span>` : ''}
       </div>
-      <div class="record-dest">🏁 ${r.abnorm !== '無' ? '⚠️ ' + r.abnorm : '異常なし'}</div>
       <div class="record-sub">
         ${r.depTime ? '出発 ' + r.depTime : ''}${r.arrTime ? ' → 帰着 ' + r.arrTime : ''}
         ${r.fuel ? ' ⛽ ' + r.fuel + 'L' : ''}
@@ -640,55 +477,30 @@ function updateHistoryTab() {
   `).join('');
 }
 
-// ===== CSVダウンロード =====
+// CSV
 function downloadCSV() {
   if (records.length === 0) { alert('記録がありません'); return; }
-  const header = '日付,出発時刻,帰着時刻,出発メーター(km),帰着メーター(km),走行距離(km),行き先,目的,異常,燃料補給(L),給油代(円),アルコール出発,アルコール帰着,備考';
-  const rows = records.map(r =>
-    [r.date, r.depTime, r.arrTime, r.depMeter, r.arrMeter, r.dist,
-     r.abnorm, r.fuel, r.fuelYen,
-     r.alcDep, r.alcArr, r.remarks].join(',')
-  );
-  const csv = '\uFEFF' + [header, ...rows].join('\n');
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href = url;
+  const header = '日付,出発時刻,帰着時刻,出発メーター,帰着メーター,走行距離,異常,燃料補給(L),アルコール出発,アルコール帰着,備考';
+  const rows = records.map(r => [r.date,r.depTime,r.arrTime,r.depMeter,r.arrMeter,r.dist,r.abnorm,r.fuel,r.alcDep,r.alcArr,r.remarks].join(','));
+  const csv = '\uFEFF' + [header,...rows].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8;'}));
   a.download = `運行記録_${new Date().toISOString().split('T')[0]}.csv`;
   a.click();
 }
 
-// ===== 全削除 =====
+// 全削除
 function clearAll() {
-  if (!confirm('すべての記録を削除しますか？\n（この操作は元に戻せません）')) return;
+  if (!confirm('すべての記録を削除しますか？')) return;
   records = [];
   localStorage.setItem('vehicleLog', '[]');
   updateHistoryTab();
 }
 
-// ===== Google Apps Script =====
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbzMdyhGh9sVcIoi_gB7F-hJ4OnfQobYpDczU_EhB1Spl0e9nOVFiKrvAH6GZnLlFe-4/exec';
-
-async function sendToSheet(rec) {
-  try {
-    const encoded = encodeURIComponent(JSON.stringify(rec));
-    const url = GAS_URL + '?data=' + encoded;
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 8000);
-    const res = await fetch(url, { method: 'GET', signal: controller.signal });
-    clearTimeout(timer);
-    const json = await res.json();
-    return json.result === 'success';
-  } catch(err) {
-    return false;
-  }
-}
-
-// Service Worker完全無効化
+// Service Worker無効化
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.getRegistrations().then(regs => {
     regs.forEach(reg => reg.unregister());
-    console.log('SW unregistered:', regs.length);
   });
   caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
 }
