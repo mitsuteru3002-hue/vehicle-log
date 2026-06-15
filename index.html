@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="運行記録">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <title>車両運行記録 v9</title>
+  <title>車両運行記録 v10</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -249,8 +249,10 @@ let abnorm = '無';
 
 // 初期化
 document.addEventListener('DOMContentLoaded', () => {
+  // 常に今日の日付をセット
   const today = new Date();
-  document.getElementById('f-date').value = today.toISOString().split('T')[0];
+  const todayStr = today.toISOString().split('T')[0];
+  document.getElementById('f-date').value = todayStr;
 
   // 前回の帰着メーターを出発メーターとして保存
   const lastArrMeter = localStorage.getItem('lastArrMeter') || '';
