@@ -2,7 +2,7 @@
   "name": "車両運行記録",
   "short_name": "運行記録",
   "description": "車両運行記録簿の入力アプリ",
-  "start_url": "./index.html",
+  "start_url": "./index.html?v=11",
   "display": "standalone",
   "background_color": "#1a3a5c",
   "theme_color": "#1a3a5c",
