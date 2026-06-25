@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="運行記録">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <title>車両運行記録 v10</title>
+  <title>車両運行記録 v11</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -112,6 +112,17 @@
 </head>
 <body>
 
+<script>
+// 毎回起動時に今日の日付を強制セット
+window.addEventListener('pageshow', function() {
+  const today = new Date();
+  const y = today.getFullYear();
+  const m = String(today.getMonth()+1).padStart(2,'0');
+  const d = String(today.getDate()).padStart(2,'0');
+  const el = document.getElementById('f-date');
+  if (el) el.value = y + '-' + m + '-' + d;
+});
+</script>
 <div id="app-header">
   <div class="header-inner">
     <span class="header-icon">🚗</span>
